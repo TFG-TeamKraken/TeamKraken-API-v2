@@ -20,5 +20,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     # Incluimos el resto de URLS
     # equipos
-    re_path('', include('apps.equipos.urls'))
+    re_path('api/equipos/', include('apps.equipos.urls'))
 ]
