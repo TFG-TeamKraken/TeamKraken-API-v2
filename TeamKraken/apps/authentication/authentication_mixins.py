@@ -11,7 +11,7 @@ class Authentication(object):
 
     def check_user_permissions(self, request, user):
         
-        request_user = request.path.split('/')[2]
+        request_user = request.path.split('/')[4]   # TODO comprobar que este cambio está bien
         
         if str(request_user) != str(user):
             return False
