@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models import Avg, Sum
+from django.db.models import Avg, Sum, Count
 from django.db.models.functions import Upper
 
 class DatosPartidoManager(models.Manager):
@@ -8,6 +8,7 @@ class DatosPartidoManager(models.Manager):
 
         return self.filter(jugador__id = jugador_id).values('posicion_jugada__id').annotate(
                         posicion = Upper('posicion_jugada__abreviacion'),
+                        partidos_jugados_en_esta_posicion = Count('posicion_jugada__id'), 
                         valoracion_media = Avg('valoracion_partido'),
                         robos_balon = Sum('robos_balon'),
                         goles_totales = Sum('goles'),
@@ -20,6 +21,7 @@ class DatosPartidoManager(models.Manager):
 
         queryset = self.filter(jugador__equipo__user__username = username, jugador__equipo__id = equipo_id).values('posicion_jugada__id', 'jugador__id').annotate(
                         posicion = Upper('posicion_jugada__abreviacion'),
+                        partidos_jugados_en_esta_posicion = Count('posicion_jugada__id'), 
                         nombre_jugador = Upper('jugador__nombre'),
                         apellidos_jugador = Upper('jugador__apellidos'),
                         valoracion_media = Avg('valoracion_partido'),
@@ -95,12 +97,14 @@ class DatosPartidoManager(models.Manager):
             result['jugador'] = result['nombre_jugador'] + ' ' + result['apellidos_jugador']
             
             # Cálculo de la efectividad en los goles del jugador en la posición correspondiente
-            if result['tiros_puerta_totales'] > 0 :
-                result['efectividad_goles'] = (result['goles_totales'] / result['tiros_puerta_totales']) * 100
-            else:
-                result['efectividad_goles'] = 0
-            
-            # Actualización de la lista clasificada de datos por posición con el objeto actual
-            queryset_clasificada[result['posicion_jugada__id'] - 1]['estadisticas'].append(result)
+            if result['tiros_puerta_totales'] is not None:
 
+                if result['tiros_puerta_totales'] > 0:
+                    result['efectividad_goles'] = (result['goles_totales'] / result['tiros_puerta_totales']) * 100
+                else:
+                    result['efectividad_goles'] = 0
+                
+                # Actualización de la lista clasificada de datos por posición con el objeto actual
+                queryset_clasificada[result['posicion_jugada__id'] - 1]['estadisticas'].append(result)
+            
         return queryset_clasificada

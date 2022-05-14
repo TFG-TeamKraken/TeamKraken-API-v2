@@ -35,10 +35,10 @@ class Jugador(models.Model):
 
 
 class Cooper(models.Model):
-    fecha = models.CharField(max_length=30, verbose_name='Fecha')
+    fecha = models.DateField(verbose_name='Fecha')
     distancia = models.IntegerField(verbose_name='Distancia recorrida')
     vo2max = models.DecimalField(max_digits=5, decimal_places=2, verbose_name='vo2max')
     jugador = models.ForeignKey(Jugador, on_delete=models.CASCADE, null=True)
 
     def __str__(self):
-        return self.fecha.__str__()
+        return self.fecha.__str__() + " - " + self.jugador.nombre + " " + self.jugador.apellidos

@@ -105,6 +105,7 @@ class PartidoInformeSerializer(serializers.ModelSerializer):
 class InformeJugadorPartidoSerializer(serializers.ModelSerializer):
 
     partido = PartidoInformeSerializer()
+    posicion_jugada = PosicionSerializer()
 
     class Meta:
         model = DatosPartido
@@ -128,6 +129,7 @@ class CooperJugadorSerializer(serializers.ModelSerializer):
 class EstadisticasJugadorPorPosicion(serializers.Serializer):
 
     posicion = serializers.CharField()
+    partidos_jugados_en_esta_posicion = serializers.IntegerField()
     valoracion_media = serializers.DecimalField(max_digits=5, decimal_places=2)
     robos_balon = serializers.IntegerField()
     goles_totales = serializers.IntegerField()
@@ -142,7 +144,7 @@ class JugadorConEstadisticasSerializer(serializers.ModelSerializer):
     estadisticas_jugador = serializers.SerializerMethodField()
     estadisticas_por_posicion = serializers.SerializerMethodField()
     informes_partidos = serializers.SerializerMethodField()
-    coopers = serializers.SerializerMethodField()
+    tests_cooper = serializers.SerializerMethodField()
 
     class Meta:
         model = Jugador
@@ -158,7 +160,7 @@ class JugadorConEstadisticasSerializer(serializers.ModelSerializer):
             'estadisticas_jugador',
             'estadisticas_por_posicion',
             'informes_partidos',
-            'coopers'
+            'tests_cooper'
             # informes_entrenamientos
             # faltas_a_entrenamientos
         )
@@ -235,7 +237,7 @@ class JugadorConEstadisticasSerializer(serializers.ModelSerializer):
         return informes_serializados
 
 
-    def get_coopers(self, obj):
+    def get_tests_cooper(self, obj):
         query = Cooper.objects.filter(jugador__id = obj.id)
         tests_cooper_serializadas = CooperJugadorSerializer(query, many=True).data
         return tests_cooper_serializadas
@@ -254,6 +256,7 @@ class EstadisticasFinalesPorPosicionSerializer(serializers.Serializer):
 class DatosPorPosicionTodosLosJugadoresSerializer(serializers.Serializer):
 
     jugador = serializers.CharField()
+    partidos_jugados_en_esta_posicion = serializers.IntegerField()
     valoracion_media = serializers.DecimalField(max_digits=5, decimal_places=2)
     robos_balon = serializers.IntegerField()
     goles_totales = serializers.IntegerField()
