@@ -19,6 +19,8 @@ from django.urls import path, re_path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     # Incluimos el resto de URLS
-    # equipos
-    re_path('api/equipos/', include('apps.equipos.urls'))
+    # Equipos
+    re_path('api/equipos/', include('apps.equipos.urls')),
+    # Equipos
+    re_path('api/jugadores/', include('apps.jugadores.urls'))
 ]
