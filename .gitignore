@@ -1,9 +1,0 @@
-# Archivo secret.json
-/TeamKraken/secret.json
-/TeamKraken/apps/jugadores/migrations
-/TeamKraken/apps/partidos/migrations
-/TeamKraken/apps/equipos/migrations
-/TeamKraken/apps/entrenamientos/migrations
-/TeamKraken/apps/ejercicios/migrations
-/TeamKraken/apps/dashboard/migrations
-/TeamKraken/apps/authentication/migrations
