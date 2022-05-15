@@ -63,7 +63,7 @@ class EliminarJugador(MultipleFieldLookupMixin, DestroyAPIView):
 
 class DatosTodosJugadoresPorPosicion(ListAPIView):
 
-    serializer_class = DatosPosicion
+    serializer_class = EstadisticasPorPosicion
 
     def get_queryset(self):
         

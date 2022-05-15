@@ -266,7 +266,26 @@ class DatosPorPosicionTodosLosJugadoresSerializer(serializers.Serializer):
     efectividad_goles = serializers.DecimalField(max_digits=5, decimal_places=2)
 
 
-class DatosPosicion(serializers.Serializer):
+class DatosPosicionSerializer(serializers.Serializer):
 
     posicion = serializers.CharField()
     estadisticas = DatosPorPosicionTodosLosJugadoresSerializer(many=True)
+
+
+class SegundoMejorJugadorSerializer(serializers.Serializer):
+
+    jugador = serializers.CharField()
+    valoracion_media = serializers.DecimalField(max_digits=5, decimal_places=2)
+
+
+class OnceIdealSerializer(serializers.Serializer):
+
+    posicion = serializers.CharField()
+    jugador = serializers.CharField()
+    valoracion_media = serializers.DecimalField(max_digits=5, decimal_places=2)
+    segundo_mejor = SegundoMejorJugadorSerializer()
+
+
+class EstadisticasPorPosicion(serializers.Serializer):
+    datos_posicion = DatosPosicionSerializer(many=True)
+    once_ideal = OnceIdealSerializer(many=True)

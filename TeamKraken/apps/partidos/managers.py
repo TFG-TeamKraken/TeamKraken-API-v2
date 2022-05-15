@@ -2,6 +2,8 @@ from django.db import models
 from django.db.models import Avg, Sum, Count
 from django.db.models.functions import Upper
 
+from operator import attrgetter
+
 class DatosPartidoManager(models.Manager):
 
     def datos_jugador_por_posicion(self, jugador_id):
@@ -17,6 +19,16 @@ class DatosPartidoManager(models.Manager):
                         tiros_puerta_totales = Sum('tiros_puerta')
                     )
 
+    def existe_jugador_en_el_once(self, mejor_jugador, once_ideal):
+
+        for jugador in once_ideal:
+            
+            if jugador['posicion'] == mejor_jugador['posicion'] and jugador['jugador'] == mejor_jugador['jugador'] and jugador['valoracion_media'] == mejor_jugador['valoracion_media']:
+                return True
+        
+        return False
+
+
     def datos_por_posicion(self, username, equipo_id):
 
         queryset = self.filter(jugador__equipo__user__username = username, jugador__equipo__id = equipo_id).values('posicion_jugada__id', 'jugador__id').annotate(
@@ -30,7 +42,7 @@ class DatosPartidoManager(models.Manager):
                         asistencias_totales = Sum('asistencias'),
                         amarillas_totales = Sum('amarillas'),
                         tiros_puerta_totales = Sum('tiros_puerta')
-                    )
+                    ).order_by('-valoracion_media')
 
         queryset_clasificada = [
             {
@@ -90,6 +102,135 @@ class DatosPartidoManager(models.Manager):
                 'estadisticas': []
             }
         ]
+
+        once_ideal = [
+            {
+                'posicion': 'PT',
+                'jugador': '',
+                'valoracion_media': 0,
+                'segundo_mejor': {
+                    'jugador': '',
+                    'valoracion_media': 0
+                }
+            },
+            {
+                'posicion': 'CTD',
+                'jugador': '',
+                'valoracion_media': 0,
+                'segundo_mejor': {
+                    'jugador': '',
+                    'valoracion_media': 0
+                }
+            },
+            {
+                'posicion': 'CTI',
+                'jugador': '',
+                'valoracion_media': 0,
+                'segundo_mejor': {
+                    'jugador': '',
+                    'valoracion_media': 0
+                }
+            },
+            {
+                'posicion': 'LI',
+                'jugador': '',
+                'valoracion_media': 0,
+                'segundo_mejor': {
+                    'jugador': '',
+                    'valoracion_media': 0
+                }
+            },
+            {
+                'posicion': 'LD',
+                'jugador': '',
+                'valoracion_media': 0,
+                'segundo_mejor': {
+                    'jugador': '',
+                    'valoracion_media': 0
+                }
+            },
+            {
+                'posicion': 'MCD',
+                'jugador': '',
+                'valoracion_media': 0,
+                'segundo_mejor': {
+                    'jugador': '',
+                    'valoracion_media': 0
+                }
+            },
+            {
+                'posicion': 'MC',
+                'jugador': '',
+                'valoracion_media': 0,
+                'segundo_mejor': {
+                    'jugador': '',
+                    'valoracion_media': 0
+                }
+            },
+            {
+                'posicion': 'II',
+                'jugador': '',
+                'valoracion_media': 0,
+                'segundo_mejor': {
+                    'jugador': '',
+                    'valoracion_media': 0
+                }
+            },
+            {
+                'posicion': 'ID',
+                'jugador': '',
+                'valoracion_media': 0,
+                'segundo_mejor': {
+                    'jugador': '',
+                    'valoracion_media': 0
+                }
+            },
+            {
+                'posicion': 'MP',
+                'jugador': '',
+                'valoracion_media': 0,
+                'segundo_mejor': {
+                    'jugador': '',
+                    'valoracion_media': 0
+                }
+            },
+            {
+                'posicion': 'SP',
+                'jugador': '',
+                'valoracion_media': 0,
+                'segundo_mejor': {
+                    'jugador': '',
+                    'valoracion_media': 0
+                }
+            },
+            {
+                'posicion': 'EI',
+                'jugador': '',
+                'valoracion_media': 0,
+                'segundo_mejor': {
+                    'jugador': '',
+                    'valoracion_media': 0
+                }
+            },
+            {
+                'posicion': 'ED',
+                'jugador': '',
+                'valoracion_media': 0,
+                'segundo_mejor': {
+                    'jugador': '',
+                    'valoracion_media': 0
+                }
+            },
+            {
+                'posicion': 'DC',
+                'jugador': '',
+                'valoracion_media': 0,
+                'segundo_mejor': {
+                    'jugador': '',
+                    'valoracion_media': 0
+                }
+            },
+        ]
         
         for result in queryset:
 
@@ -106,5 +247,33 @@ class DatosPartidoManager(models.Manager):
                 
                 # Actualización de la lista clasificada de datos por posición con el objeto actual
                 queryset_clasificada[result['posicion_jugada__id'] - 1]['estadisticas'].append(result)
+        
+        index = 0
+        
+        for datos_posicion in queryset_clasificada:
+
+            mejor_jugador = datos_posicion['estadisticas'][0]
+
+            once_ideal[index]['jugador'] = mejor_jugador['jugador']
+            once_ideal[index]['valoracion_media'] = mejor_jugador['valoracion_media']
             
-        return queryset_clasificada
+            if len(datos_posicion['estadisticas']) > 1:
+                segundo_mejor_jugador = datos_posicion['estadisticas'][1]
+
+                once_ideal[index]['segundo_mejor']['jugador'] = segundo_mejor_jugador['jugador']
+                once_ideal[index]['segundo_mejor']['valoracion_media'] = segundo_mejor_jugador['valoracion_media']
+            else:
+                once_ideal[index]['segundo_mejor']['jugador'] = 'No hay más opciones para esta posición'
+
+            index = index + 1
+
+        estadisticas_por_posicion = [
+            {
+                'datos_posicion' : queryset_clasificada,
+                'once_ideal': once_ideal
+            }
+        ]
+        
+        print(estadisticas_por_posicion)
+            
+        return estadisticas_por_posicion
