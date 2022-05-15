@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from apps.jugadores.models import Posicion
+from apps.jugadores.models import Jugador
 
 from apps.authentication.serializers import UserSerializer
 
@@ -18,13 +20,13 @@ class ListaEquiposSerializer(serializers.ModelSerializer):
 
 class EquipoSerializer(serializers.ModelSerializer):
 
-    user = UserSerializer()
     notas = serializers.SerializerMethodField()
-    # TODO faltan jugadores
+    jugadores = serializers.SerializerMethodField()
 
     class Meta:
         model = Equipo
         fields = (
+            'id',
             'id_equipo',
             'nombre',
             'nombre_club',
@@ -41,6 +43,7 @@ class EquipoSerializer(serializers.ModelSerializer):
             'cod_competicion',
             'creado_manual',
             'user',
+            'jugadores',
             'notas'
         )
 
@@ -48,6 +51,33 @@ class EquipoSerializer(serializers.ModelSerializer):
         query = Nota.objects.filter(equipo__id=obj.id)
         notas_serializadas = ListaNotasSerializer(query, many=True).data
         return notas_serializadas
+        
+    def get_jugadores(self, obj):
+        query = Jugador.objects.filter(equipo__id=obj.id)
+        jugadores_serializados = ListaJugadoresSerializer(query, many=True).data
+        return jugadores_serializados
+
+
+class PosicionSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Posicion
+        fields = (
+            'abreviacion',
+        )
+
+class ListaJugadoresSerializer(serializers.ModelSerializer):
+
+    posicion_principal = PosicionSerializer()
+
+    class Meta:
+        model = Jugador
+        fields = (
+            'id',
+            'nombre',
+            'apellidos',
+            'posicion_principal'
+        )
 
 class ListaNotasSerializer(serializers.ModelSerializer):
 
