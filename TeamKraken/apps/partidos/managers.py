@@ -273,7 +273,5 @@ class DatosPartidoManager(models.Manager):
                 'once_ideal': once_ideal
             }
         ]
-        
-        print(estadisticas_por_posicion)
             
         return estadisticas_por_posicion
