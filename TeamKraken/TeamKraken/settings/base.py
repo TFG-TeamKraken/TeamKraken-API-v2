@@ -52,6 +52,7 @@ LOCAL_APPS = [
 # APLICACIONES DE TERCEROS
 THIRD_PARTY_APPS = [
     'rest_framework',
+    'rest_framework.authtoken',
     'corsheaders'
 ]
 
@@ -79,7 +80,8 @@ CORS_ALLOW_METHODS = [
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:4200',
-    'http://127.0.0.1:8080'
+    'http://127.0.0.1:8080',
+    'http://localhost:8080'
 ]
 
 ROOT_URLCONF = 'TeamKraken.urls'

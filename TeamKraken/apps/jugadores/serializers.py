@@ -11,6 +11,7 @@ class PosicionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Posicion
         fields = (
+            'id',
             'abreviacion',
         )
 
@@ -110,6 +111,7 @@ class InformeJugadorPartidoSerializer(serializers.ModelSerializer):
     class Meta:
         model = DatosPartido
         fields = (
+            'id',
             'valoracion_partido',
             'posicion_jugada',
             'partido'
@@ -176,13 +178,28 @@ class JugadorConEstadisticasSerializer(serializers.ModelSerializer):
         ac = 0
 
         for informe in datos_partidos:
-            total_amarillas = total_amarillas + informe['amarillas']
-            total_goles = total_goles + informe['goles']
-            total_asistencias = total_asistencias + informe['asistencias']
+            if informe['amarillas']:
+                total_amarillas = total_amarillas + informe['amarillas']
             
-            valoracion_total = valoracion_total + float(informe['valoracion_partido'])
-            total_tiros_puerta = total_tiros_puerta + informe['tiros_puerta']
-            total_minutos_jugados = total_minutos_jugados + informe['minutos_jugados'] + informe['plus_minutos_por_lesion']
+
+            if informe['goles']:
+                total_goles = total_goles + informe['goles']
+            
+
+            if informe['asistencias']:
+                total_asistencias = total_asistencias + informe['asistencias']
+            
+            if informe['valoracion_partido']:
+                valoracion_total = valoracion_total + float(informe['valoracion_partido'])
+    
+            if informe['tiros_puerta']:
+                total_tiros_puerta = total_tiros_puerta + informe['tiros_puerta']
+    
+            if informe['minutos_jugados']:
+                total_minutos_jugados = total_minutos_jugados + informe['minutos_jugados']
+
+            if informe['plus_minutos_por_lesion']:
+                total_minutos_jugados = total_minutos_jugados + informe['plus_minutos_por_lesion']
 
             ac = ac + 1
 

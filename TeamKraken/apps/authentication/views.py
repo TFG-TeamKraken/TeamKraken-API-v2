@@ -1,4 +1,6 @@
 from datetime import datetime
+import base64
+import json
 
 from rest_framework import status
 from rest_framework.views import APIView
@@ -45,12 +47,16 @@ class Login(ObtainAuthToken):
             if user.is_active:
                 token, created = Token.objects.get_or_create(user = user)
                 user_serializer = UserSerializer(user)
+                
+                user_encoded = base64.b64encode(json.dumps(user_serializer.data).encode('ascii'))
+                token_payload = user_encoded.decode()
+
+                fulltoken = token.key + '.' + token_payload
 
                 if created:
                     return Response(
                             {
-                                'token': token.key, 
-                                'user': user_serializer.data,
+                                'token': fulltoken,
                                 'message': 'Inicio de sesión exitoso'
                             }, 
                             status = status.HTTP_201_CREATED
@@ -66,8 +72,7 @@ class Login(ObtainAuthToken):
                     token = Token.objects.create(user = user)
                     return Response(
                             {
-                                'token': token.key, 
-                                'user': user_serializer.data,
+                                'token': fulltoken,
                                 'message': 'Inicio de sesión exitoso'
                             }, 
                             status = status.HTTP_201_CREATED
