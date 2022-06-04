@@ -26,5 +26,7 @@ urlpatterns = [
     # Jugadores
     re_path('api/jugadores/', include('apps.jugadores.urls')),
     # Partidos
-    re_path('api/partidos/', include('apps.partidos.urls'))
+    re_path('api/partidos/', include('apps.partidos.urls')),
+    # Ejercicios
+    re_path('api/ejercicios/', include('apps.ejercicios.urls'))
 ]

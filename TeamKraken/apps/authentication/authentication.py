@@ -2,7 +2,7 @@ from django.utils import timezone
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 from datetime import timedelta
-from TeamKraken.settings import TOKEN_EXPIRED_AFTER_SECONDS
+from TeamKraken.settings.base import TOKEN_EXPIRED_AFTER_SECONDS
 
 class ExpiringTokenAuthentication(TokenAuthentication):
 
