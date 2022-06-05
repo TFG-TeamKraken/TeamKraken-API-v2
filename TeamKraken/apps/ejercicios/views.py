@@ -91,6 +91,8 @@ class ListaEjerciciosFiltrada(CreateAPIView):
 
         if query:
             queryset = queryset.filter(query).distinct()[first:last]
+        else:
+            queryset = queryset[first:last]
 
         ejercicios_filtrados = ListaEjerciciosSerializer(data=queryset, many=True)
         ejercicios_filtrados.is_valid()

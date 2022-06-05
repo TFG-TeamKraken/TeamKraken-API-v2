@@ -130,22 +130,14 @@ class ListaNuevosEjerciciosSerializer(serializers.Serializer):
 
 class ListaEjerciciosSerializer(serializers.ModelSerializer):
 
-    objetivo_tecnico = ObjetivoTecnicoSerializer(many=True)
-    objetivo_tactico = ObjetivoTacticoSerializer(many=True)
-    objetivo_fisico = ObjetivoFisicoSerializer(many=True)
-    objetivo_psicologico = ObjetivoPsicologicoSerializer(many=True)
-    objetivo_especifico = ObjetivoEspecificoSerializer(many=True)
-
     class Meta:
         model = Ejercicio
         fields = (
             'id',
             'nombre',
-            'objetivo_tecnico',
-            'objetivo_tactico',
-            'objetivo_fisico',
-            'objetivo_psicologico',
-            'objetivo_especifico'
+            'intensidad',
+            'duracion',
+            'descripcion'
         )
 
 

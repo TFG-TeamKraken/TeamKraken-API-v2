@@ -55,7 +55,7 @@ class ListaInformesSerializer(serializers.ModelSerializer):
 
 class DetallesPartidoSerializer(serializers.ModelSerializer):
 
-    # convocados = ListaConvocadosSerializer(many=True)
+    convocados = ListaConvocadosSerializer(many=True)
     informes = serializers.SerializerMethodField()
 
     class Meta:
