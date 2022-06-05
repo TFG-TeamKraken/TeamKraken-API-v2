@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from rest_framework.utils.serializer_helpers import ReturnDict
+from apps.entrenamientos.models import DatosEntrenamiento, Entrenamiento, FaltaAsistencia
 from apps.partidos.models import Partido
 
 from apps.partidos.models import DatosPartido
@@ -70,19 +71,21 @@ class EstadisticasJugadorPartidos(serializers.ModelSerializer):
             'plus_minutos_por_lesion'
         )
 
-# class EstadisticasJugadorEntrenamientos(serializers.ModelSerializer):
+class EstadisticasJugadorEntrenamientos(serializers.ModelSerializer):
 
-#     class Meta:
-#         model = DatosEntrenamiento
-#         fields = (
-#             'minutos_jugados',
-#             'plus_minutos_por_lesion'
-#         )
+    class Meta:
+        model = DatosEntrenamiento
+        fields = (
+            'minutos_entrenados',
+            'plus_minutos_por_lesion',
+            'plus_entrenamiento_fisico',
+            'rec_entrenamiento_recuperacion'
+        )
 
 class EstadisticasFinalesSerializer(serializers.Serializer):
 
     partidos_jugados = serializers.IntegerField()
-    # entrenamientos_asistidos = serializers.IntegerField()
+    entrenamientos_asistidos = serializers.IntegerField()
     valoracion_media = serializers.DecimalField(max_digits=5, decimal_places=2)
     amarillas_totales = serializers.IntegerField()
     goles_totales = serializers.IntegerField()
@@ -117,6 +120,49 @@ class InformeJugadorPartidoSerializer(serializers.ModelSerializer):
             'partido'
         )
 
+class EntrenamientoInformeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Entrenamiento
+        fields = (
+            'id',
+            'fecha',
+            'tipo_entrenamiento'
+        )
+
+class InformeJugadorEntrenamientoSerializer(serializers.ModelSerializer):
+
+    entrenamiento = EntrenamientoInformeSerializer()
+
+    class Meta:
+        model = DatosEntrenamiento
+        fields = (
+            'id',
+            'entrenamiento'
+        )
+
+
+class EntrenamientoFaltaSerializer(serializers.ModelSerializer):
+
+    class Meta:
+            model = Entrenamiento
+            fields = (
+                'id'
+            )
+
+class FaltaAsistenciaJugadorSerializer(serializers.ModelSerializer):
+
+    entrenamiento = EntrenamientoFaltaSerializer()
+
+    class Meta:
+        model = FaltaAsistencia
+        fields = (
+            'id',
+            'fecha',
+            'tipo',
+            'entrenamiento'
+        )
+
 
 class CooperJugadorSerializer(serializers.ModelSerializer):
 
@@ -127,6 +173,7 @@ class CooperJugadorSerializer(serializers.ModelSerializer):
             'distancia',
             'vo2max'
         )
+
 
 class EstadisticasJugadorPorPosicion(serializers.Serializer):
 
@@ -139,6 +186,7 @@ class EstadisticasJugadorPorPosicion(serializers.Serializer):
     amarillas_totales = serializers.IntegerField()
     tiros_puerta_totales = serializers.IntegerField()
 
+
 class JugadorConEstadisticasSerializer(serializers.ModelSerializer):
 
     posicion_principal = PosicionSerializer()
@@ -146,6 +194,8 @@ class JugadorConEstadisticasSerializer(serializers.ModelSerializer):
     estadisticas_jugador = serializers.SerializerMethodField()
     estadisticas_por_posicion = serializers.SerializerMethodField()
     informes_partidos = serializers.SerializerMethodField()
+    informes_entrenamientos = serializers.SerializerMethodField()
+    faltas_a_entrenamientos = serializers.SerializerMethodField()
     tests_cooper = serializers.SerializerMethodField()
 
     class Meta:
@@ -162,9 +212,9 @@ class JugadorConEstadisticasSerializer(serializers.ModelSerializer):
             'estadisticas_jugador',
             'estadisticas_por_posicion',
             'informes_partidos',
-            'tests_cooper'
-            # informes_entrenamientos
-            # faltas_a_entrenamientos
+            'tests_cooper',
+            'informes_entrenamientos',
+            'faltas_a_entrenamientos'
         )
 
     def calcula_estadisticas(self, datos_partidos):
@@ -217,22 +267,48 @@ class JugadorConEstadisticasSerializer(serializers.ModelSerializer):
 
         return (total_amarillas, total_goles, total_asistencias, efectividad_goles, total_minutos_jugados, valoracion_media, partidos_jugados)
 
+    def calcula_estadisticas_entrenamientos(self, datos_entrenamientos):
+        
+        total_minutos_entrenados = 0
+        ac = 0
+
+        for informe in datos_entrenamientos:
+            
+            if informe['minutos_entrenados']:
+                total_minutos_entrenados = total_minutos_entrenados + informe['minutos_entrenados']
+
+            if informe['plus_minutos_por_lesion']:
+                total_minutos_entrenados = total_minutos_entrenados + informe['plus_minutos_por_lesion']
+                
+            if informe['plus_entrenamiento_fisico']:
+                total_minutos_entrenados = total_minutos_entrenados + informe['plus_entrenamiento_fisico']
+
+            if informe['rec_entrenamiento_recuperacion']:
+                total_minutos_entrenados = total_minutos_entrenados - informe['rec_entrenamiento_recuperacion']
+
+            ac = ac + 1
+
+        entrenamientos_asistidos = ac
+
+        return (total_minutos_entrenados, entrenamientos_asistidos)
+
     def get_estadisticas_jugador(self, obj):
-        query = DatosPartido.objects.filter(jugador__id=obj.id)
-        datos_partido_serializados = EstadisticasJugadorPartidos(query, many=True).data
-        # datos_entrenamiento_serializados = EstadisticasJugadorEntrenamiento(query, many=True).data    # Sacar de aquí los minutos para sumárselos a la probabilidad de lesión
+        query_datos_partido = DatosPartido.objects.filter(jugador__id=obj.id)
+        datos_partido_serializados = EstadisticasJugadorPartidos(query_datos_partido, many=True).data
+        
+        query_datos_entrenamiento = DatosEntrenamiento.objects.filter(jugador__id=obj.id)
+        datos_entrenamiento_serializados = EstadisticasJugadorEntrenamientos(query_datos_entrenamiento, many=True).data
         
         total_amarillas, total_goles, total_asistencias, efectividad_goles, total_minutos_jugados, valoracion_media, partidos_jugados = self.calcula_estadisticas(datos_partido_serializados)
-        # total_minutos_entrenados, entrenamientos_asistidos = calcula_estadisticas_entrenamientos(datos_entrenamiento_serializados)
+        total_minutos_entrenados, entrenamientos_asistidos = self.calcula_estadisticas_entrenamientos(datos_entrenamiento_serializados)
 
-        # TODO Probabilidad de lesión
-        total_minutos = total_minutos_jugados # + total_minutos_entrenados
+        total_minutos = total_minutos_jugados + total_minutos_entrenados
 
         probabilidad_lesion = (total_minutos / 1000) * 10
 
         estadisticas = ReturnDict((
             ('partidos_jugados', partidos_jugados),
-            # ('entrenamientos_asistidos', entrenamientos_asistidos),
+            ('entrenamientos_asistidos', entrenamientos_asistidos),
             ('valoracion_media', valoracion_media),
             ('amarillas_totales', total_amarillas),
             ('goles_totales', total_goles),
@@ -253,6 +329,15 @@ class JugadorConEstadisticasSerializer(serializers.ModelSerializer):
         informes_serializados = InformeJugadorPartidoSerializer(query, many=True).data
         return informes_serializados
 
+    def get_informes_entrenamientos(self, obj):
+        query = DatosEntrenamiento.objects.filter(jugador__id = obj.id)
+        informes_serializados = InformeJugadorEntrenamientoSerializer(query, many=True).data
+        return informes_serializados
+
+    def get_faltas_a_entrenamientos(self, obj):
+        query = FaltaAsistencia.objects.filter(jugador__id = obj.id)
+        informes_serializados = FaltaAsistenciaJugadorSerializer(query, many=True).data
+        return informes_serializados
 
     def get_tests_cooper(self, obj):
         query = Cooper.objects.filter(jugador__id = obj.id)
