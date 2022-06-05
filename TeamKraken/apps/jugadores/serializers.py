@@ -85,7 +85,9 @@ class EstadisticasJugadorEntrenamientos(serializers.ModelSerializer):
 class EstadisticasFinalesSerializer(serializers.Serializer):
 
     partidos_jugados = serializers.IntegerField()
+    partidos_no_convocado = serializers.IntegerField()
     entrenamientos_asistidos = serializers.IntegerField()
+    num_faltas_asistencia = serializers.IntegerField()
     valoracion_media = serializers.DecimalField(max_digits=5, decimal_places=2)
     amarillas_totales = serializers.IntegerField()
     goles_totales = serializers.IntegerField()
@@ -147,7 +149,8 @@ class EntrenamientoFaltaSerializer(serializers.ModelSerializer):
     class Meta:
             model = Entrenamiento
             fields = (
-                'id'
+                'id',
+                'fecha'
             )
 
 class FaltaAsistenciaJugadorSerializer(serializers.ModelSerializer):
@@ -158,7 +161,6 @@ class FaltaAsistenciaJugadorSerializer(serializers.ModelSerializer):
         model = FaltaAsistencia
         fields = (
             'id',
-            'fecha',
             'tipo',
             'entrenamiento'
         )
@@ -214,7 +216,8 @@ class JugadorConEstadisticasSerializer(serializers.ModelSerializer):
             'informes_partidos',
             'tests_cooper',
             'informes_entrenamientos',
-            'faltas_a_entrenamientos'
+            'faltas_a_entrenamientos',
+            'equipo'
         )
 
     def calcula_estadisticas(self, datos_partidos):
@@ -298,17 +301,29 @@ class JugadorConEstadisticasSerializer(serializers.ModelSerializer):
         
         query_datos_entrenamiento = DatosEntrenamiento.objects.filter(jugador__id=obj.id)
         datos_entrenamiento_serializados = EstadisticasJugadorEntrenamientos(query_datos_entrenamiento, many=True).data
+   
+        partidos_no_convocado = Partido.objects.filter(equipo__id=obj.equipo.id).exclude(convocados__id__contains=obj.id).count()
+        num_faltas_asistencia = FaltaAsistencia.objects.filter(jugador__id = obj.id).count()
         
         total_amarillas, total_goles, total_asistencias, efectividad_goles, total_minutos_jugados, valoracion_media, partidos_jugados = self.calcula_estadisticas(datos_partido_serializados)
         total_minutos_entrenados, entrenamientos_asistidos = self.calcula_estadisticas_entrenamientos(datos_entrenamiento_serializados)
 
-        total_minutos = total_minutos_jugados + total_minutos_entrenados
+        recuperacion_por_faltas = 90 * num_faltas_asistencia
+        recuperacion_por_no_convocado = 90 * partidos_no_convocado
+
+        # Sumamos los minutos entrenados y los jugados, y restamos los partidos no jugados y las faltas a entrenamientos
+        total_minutos = (total_minutos_jugados + total_minutos_entrenados) - (recuperacion_por_no_convocado + recuperacion_por_faltas)
 
         probabilidad_lesion = (total_minutos / 1000) * 10
 
+        if probabilidad_lesion < 0:
+            probabilidad_lesion = 0
+
         estadisticas = ReturnDict((
             ('partidos_jugados', partidos_jugados),
+            ('partidos_no_convocado', partidos_no_convocado),
             ('entrenamientos_asistidos', entrenamientos_asistidos),
+            ('faltas_a_entrenamientos', num_faltas_asistencia),
             ('valoracion_media', valoracion_media),
             ('amarillas_totales', total_amarillas),
             ('goles_totales', total_goles),

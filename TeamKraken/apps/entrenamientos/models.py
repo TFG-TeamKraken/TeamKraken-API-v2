@@ -16,8 +16,8 @@ class Entrenamiento(models.Model):
     ]
     fecha = models.DateField(verbose_name='Fecha')
     tipo_entrenamiento = models.CharField(max_length=30, choices=TIPO_ENTRENAMIENTO_CHOICES, default=NORMAL)
-    ejercicios = models.ManyToManyField(Ejercicio)
-    jugadores = models.ManyToManyField(Jugador)
+    ejercicios = models.ManyToManyField(Ejercicio, blank=True)
+    jugadores = models.ManyToManyField(Jugador, blank=True)
     equipo = models.ForeignKey(Equipo , on_delete=models.CASCADE, null=True)
     
     def __str__(self):
@@ -58,7 +58,6 @@ class FaltaAsistencia(models.Model):
         (JUSTIFICADA, 'Justificada'),
         (LESION, 'Lesion'),
     ]
-    fecha = models.CharField(max_length=30, verbose_name='Fecha')
     tipo = models.CharField(max_length=30, choices=TIPO_FALTA_CHOICES, default=INJUSTIFICADA)
     entrenamiento = models.ForeignKey(Entrenamiento, on_delete=models.CASCADE, null=True)
     jugador = models.ForeignKey(Jugador, on_delete=models.CASCADE, null=True)
